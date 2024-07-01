@@ -3,6 +3,10 @@ import pandas as pd
 import streamlit as st
 import pickle
 
+import shap
+import matplotlib.pyplot as plt
+import xgboost  # Make sure xgboost is imported
+
 # Load the model 
 with open('house_xgb_model.pkl', 'rb') as f:
     model = pickle.load(f)
@@ -28,5 +32,23 @@ if st.button('Estimate Price'):
         predicted_price = model.predict(input_features)  # Use model.predict 
 
     st.success(f"Estimated House Price: ${predicted_price[0]:,.2f}")
+    
+    # Get feature names from the trained model
+feature_names = xgbReg.get_booster().feature_names
+print(feature_names) 
+
+# Choose the feature for analysis (use one variable, not two)
+feature_to_analyze = 'median_income'  
+
+# Create a TreeExplainer 
+explainer = shap.TreeExplainer(xgbReg)
+
+# Calculate SHAP values
+shap_values = explainer.shap_values(X_new)
+
+# Summary Plot
+shap.summary_plot(shap_values, X_new, feature_names=feature_names)
+
+plt.show() 
 
 
